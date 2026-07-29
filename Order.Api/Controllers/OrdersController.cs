@@ -9,6 +9,7 @@ namespace Order.Api.Controllers
     [Route("api/[controller]")]
     [ApiController]
     //[Authorize]
+
     public class OrdersController : ControllerBase
     {
         private readonly IOrderServices _orderServices;
