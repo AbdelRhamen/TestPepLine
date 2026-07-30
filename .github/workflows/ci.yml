@@ -1,0 +1,44 @@
+name: CI - PR Check
+
+on:
+  pull_request:
+    branches: [main]
+
+jobs:
+  build-and-check:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Restore dependencies
+        run: dotnet restore
+
+      - name: Build
+        run: dotnet build --no-restore --configuration Release
+
+      - name: Build Docker Image
+        run: docker build -t abdomo/testpip:pr-check .
+
+      - name: Run Container and Check Health
+        run: |
+          docker run -d \
+            --name order-api-test \
+            -p 5281:5281 \
+            -e ASPNETCORE_ENVIRONMENT=Development \
+            -e ASPNETCORE_URLS=http://+:5281 \
+            abdomo/testpip:pr-check
+          sleep 15
+          curl -f -s http://localhost:5281/swagger > /dev/null && echo "Swagger is UP" || (echo "Swagger FAILED" && exit 1)
+          docker stop order-api-test
+          docker rm order-api-test
+
+      - name: Cleanup Docker Image
+        if: always()
+        run: docker rmi abdomo/testpip:pr-check || true
