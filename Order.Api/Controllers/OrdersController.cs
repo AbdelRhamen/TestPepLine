@@ -47,7 +47,28 @@ namespace Order.Api.Controllers
 
             return Ok(ordersWithUser);
         }
+        [HttpGet("two")]
+        public async Task<IActionResult> two()
+        {
+            var orders = await _orderServices.GetOrders();
+            var ordersWithUser = new List<object>();
 
+            foreach (var o in orders)
+            {
+                var user = await _userClient.GetUserDetailsAsync(o.CreatedBy);
+                var product = await _productClient.GetProductDetailsAsync(o.ProductId);
+                ordersWithUser.Add(new
+                {
+                    o.Id,
+                    o.ProductId,
+                    o.Quantity,
+                    CustomerName = user.Exists ? user.FullName : "Unknown User",
+                    productName = product?.Name ?? "Unknown Product",
+                });
+            }
+
+            return Ok(ordersWithUser);
+        }
         [HttpGet]
         [Route("{id}")]
         public async Task<IActionResult> GetById(Guid id)
