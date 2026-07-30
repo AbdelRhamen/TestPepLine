@@ -1,32 +1,16 @@
-version: '3.8'
 services:
-  db:
-    image: mcr.microsoft.com/mssql/server:2022-latest
-    container_name: SimpleStoreApp-sql
-    user: root
-    environment:
-      - ACCEPT_EULA=Y
-      - MSSQL_SA_PASSWORD=YourStrong@Password123
-      - MSSQL_PID=Developer
-    ports:
-      - "1435:1433"
-    volumes:
-      - mssql_data:/var/opt/mssql/data
-    networks:
-      - SimpleStoreApp-network
-
   order-api:
     build:
-      context: ./order/Order
-      dockerfile: DockerFile
+      context: .
+      dockerfile: Dockerfile  # تأكد من أن الاسم مطابق تماماً لاسم الملف
     container_name: order-api
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
-      - ConnectionStrings__DefaultConnection=Server=DESKTOP-7O4R3N7\\SQLEXPRESS;Initial Catalog=OrderDb;Integrated Security=true;MultipleActiveResultSets=True;TrustServerCertificate=True;
+      - ConnectionStrings__DefaultConnection=Server=192.168.56.1\SQLEXPRESS;Initial Catalog=OrderDb22;User Id=sa;Password=123456;MultipleActiveResultSets=True;TrustServerCertificate=True;
       - GrpcSettings__ProductUrl=http://product-api:7779
       - GrpcSettings__UserUrl=http://user-management-api:7165
       - ASPNETCORE_KESTREL__ENDPOINTS__HTTP__URL=http://+:5281
       - ASPNETCORE_KESTREL__ENDPOINTS__HTTP__PROTOCOLS=Http1
     ports:
-      - "6005:5281"
-
+      - "5281:6001"   # HTTP (Swagger)
+      - "5282:6002"
